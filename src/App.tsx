@@ -9,10 +9,14 @@ import { Compass, Sliders, Sparkles, Terminal, Shield, BookOpen, ExternalLink, S
 export default function App() {
   const [activeTab, setActiveTab] = useState<"warroom" | "generator" | "cost" | "settings">("warroom");
   const [generatorTopic, setGeneratorTopic] = useState<string>("");
+  const [generatorContext, setGeneratorContext] = useState<string>("");
+  const [generatorUrl, setGeneratorUrl] = useState<string>("");
 
   // Handler for transfer signal to draft generator from WarRoom click
-  const handleSelectTopicForGenerator = (topic: string) => {
+  const handleSelectTopicForGenerator = (topic: string, context: string, url: string) => {
     setGeneratorTopic(topic);
+    setGeneratorContext(context);
+    setGeneratorUrl(url);
     setActiveTab("generator");
   };
 
@@ -120,7 +124,11 @@ export default function App() {
                 <div className="p-3.5 bg-purple-primary/10 border border-purple-primary/30 text-purple-primary text-xs rounded-lg flex items-center justify-between font-mono animate-pulse-glow">
                   <span>🚀 TOPIK DIPINDAHKAN DARIPADA WAR ROOM: "<strong>{generatorTopic}</strong>"</span>
                   <button 
-                    onClick={() => setGeneratorTopic("")} 
+                    onClick={() => {
+                      setGeneratorTopic("");
+                      setGeneratorContext("");
+                      setGeneratorUrl("");
+                    }} 
                     className="hover:text-white transition uppercase text-[10px] underline cursor-pointer"
                   >
                     OS-RESET
@@ -128,7 +136,11 @@ export default function App() {
                 </div>
               )}
 
-              <DraftGenerator prefilledTopic={generatorTopic} />
+              <DraftGenerator 
+                prefilledTopic={generatorTopic} 
+                prefilledContext={generatorContext}
+                prefilledUrl={generatorUrl}
+              />
               
               {/* Show live Cost tracker right below editor to keep cost study relevant */}
               <ActiveSessionCostStats />

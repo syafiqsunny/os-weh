@@ -127,10 +127,10 @@ export default function ActiveSessionCostStats() {
             <div className="p-3 bg-field/80 rounded border border-line-soft">
               <span className="text-muted-inactive block uppercase text-[9px]">DIKUMPUL (RM)</span>
               <span className="text-lg font-display font-bold text-white block mt-0.5">
-                RM {sessionData.totalRM.toLocaleString("us-MY", { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
+                RM {sessionData.totalRM.toLocaleString("en-MY", { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
               </span>
               <span className="text-[10px] text-muted-active">
-                USD {sessionData.totalUSD.toLocaleString("us-MY", { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
+                USD {sessionData.totalUSD.toLocaleString("en-MY", { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
               </span>
             </div>
 

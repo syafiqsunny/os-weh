@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Google AI Studio App</title>
+    <script>
+      // Force block external cross-origin third-party script and extension errors in the sandbox iframe
+      window.onerror = function (message, source, lineno, colno, error) {
+        const msg = String(message || "");
+        if (msg === "Script error." || msg.indexOf("Script error") !== -1 || !source || source.indexOf(window.location.origin) === -1) {
+          console.warn("Suppressed external / extension sandboxed script error:", msg, "from source:", source);
+          return true; // prevent error bubbling entirely
+        }
+        return false;
+      };
+      window.addEventListener("unhandledrejection", function (event) {
+        const reason = String(event.reason && event.reason.message || event.reason || "");
+        if (reason.indexOf("Script error") !== -1 || reason.indexOf("extension") !== -1) {
+          event.preventDefault();
+          event.stopPropagation();
+          console.warn("Suppressed external sandboxed unhandled promise rejection:", reason);
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

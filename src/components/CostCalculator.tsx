@@ -299,10 +299,10 @@ export default function CostCalculator() {
               <span className="text-xs font-mono text-red-400 uppercase tracking-wider block">CLAUDE-ONLY STACK</span>
               <div className="space-y-0.5">
                 <span className="text-2xl font-display font-bold text-white block">
-                  RM {claudeResult.totalRM.toLocaleString("us-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  RM {claudeResult.totalRM.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="text-xs text-muted-active font-mono">
-                  USD {claudeResult.totalUSD.toLocaleString("us-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / Bulan
+                  USD {claudeResult.totalUSD.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / Bulan
                 </span>
               </div>
               <div className="text-[10px] text-muted-inactive leading-relaxed border-t border-line/50 pt-2 font-mono">
@@ -317,10 +317,10 @@ export default function CostCalculator() {
               <span className="text-xs font-mono text-purple-primary font-bold uppercase tracking-wider block">SYOR STACK CAMPURAN</span>
               <div className="space-y-0.5">
                 <span className="text-2xl font-display font-bold text-white block">
-                  RM {campuranResult.totalRM.toLocaleString("us-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  RM {campuranResult.totalRM.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="text-xs text-purple-primary font-mono block">
-                  USD {campuranResult.totalUSD.toLocaleString("us-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / Bulan
+                  USD {campuranResult.totalUSD.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / Bulan
                 </span>
               </div>
               <div className="text-[10px] text-muted-active leading-relaxed border-t border-purple-primary/25 pt-2 font-mono">
@@ -341,7 +341,7 @@ export default function CostCalculator() {
               <p className="text-lg font-display font-medium">
                 Pindah ke pelan campuran menjimatkan kira-kira{" "}
                 <span className="text-white font-bold block sm:inline">
-                  RM {monthlySavingsRM.toLocaleString("us-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  RM {monthlySavingsRM.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </p>
             </div>

@@ -12,9 +12,12 @@ import {
   DollarSign,
   Plus
 } from "lucide-react";
+import { safeStorage } from "../lib/safeStorage";
 
 interface DraftGeneratorProps {
   prefilledTopic: string;
+  prefilledContext?: string;
+  prefilledUrl?: string;
 }
 
 interface WebSearchResponse {
@@ -53,7 +56,7 @@ interface DraftResponse {
   };
 }
 
-export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) {
+export default function DraftGenerator({ prefilledTopic, prefilledContext, prefilledUrl }: DraftGeneratorProps) {
   // Search state
   const [searchQuery, setSearchQuery] = useState<string>(prefilledTopic || "");
   const [isSearching, setIsSearching] = useState<boolean>(false);
@@ -76,6 +79,20 @@ export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) 
   const [scrapeError, setScrapeError] = useState<string | null>(null);
   const [scrapeSuccess, setScrapeSuccess] = useState<boolean>(false);
 
+  // Sync props dynamically when changed in parent (moved after state declarations)
+  React.useEffect(() => {
+    if (prefilledTopic) {
+      setDraftTopic(prefilledTopic);
+      setSearchQuery(prefilledTopic);
+    }
+    if (prefilledContext !== undefined) {
+      setContext(prefilledContext);
+    }
+    if (prefilledUrl !== undefined) {
+      setScrapeUrl(prefilledUrl);
+    }
+  }, [prefilledTopic, prefilledContext, prefilledUrl]);
+
   // Dynamic scraping handler powered by ScrapingBee
   const handleScrapeUrl = async () => {
     if (!scrapeUrl.trim()) return;
@@ -88,8 +105,8 @@ export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) 
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-gemini-key": localStorage.getItem("weh_gemini_api_key") || "",
-          "x-scrapingbee-key": localStorage.getItem("weh_scrapingbee_api_key") || ""
+          "x-gemini-key": safeStorage.getItem("weh_gemini_api_key") || "",
+          "x-scrapingbee-key": safeStorage.getItem("weh_scrapingbee_api_key") || ""
         },
         body: JSON.stringify({ url: scrapeUrl.trim() })
       });
@@ -135,13 +152,13 @@ export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) 
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-gemini-key": localStorage.getItem("weh_gemini_api_key") || "",
-          "x-scrapingbee-key": localStorage.getItem("weh_scrapingbee_api_key") || ""
+          "x-gemini-key": safeStorage.getItem("weh_gemini_api_key") || "",
+          "x-scrapingbee-key": safeStorage.getItem("weh_scrapingbee_api_key") || ""
         },
         body: JSON.stringify({
           query: searchQuery,
           pricingModel: pricingModel === "claude" ? "claude" : "gemini",
-          customSystemPrompt: localStorage.getItem("weh_system_prompt") || ""
+          customSystemPrompt: safeStorage.getItem("weh_system_prompt") || ""
         })
       });
       const data = await response.json();
@@ -175,8 +192,8 @@ export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) 
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-gemini-key": localStorage.getItem("weh_gemini_api_key") || "",
-          "x-scrapingbee-key": localStorage.getItem("weh_scrapingbee_api_key") || ""
+          "x-gemini-key": safeStorage.getItem("weh_gemini_api_key") || "",
+          "x-scrapingbee-key": safeStorage.getItem("weh_scrapingbee_api_key") || ""
         },
         body: JSON.stringify({
           topic: draftTopic,
@@ -184,7 +201,7 @@ export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) 
           formats: selectedFormats,
           model: activeModel,
           pricingModel: pricingModel === "claude" ? "claude" : "gemini",
-          customSystemPrompt: localStorage.getItem("weh_system_prompt") || ""
+          customSystemPrompt: safeStorage.getItem("weh_system_prompt") || ""
         })
       });
       const data = await response.json();
@@ -211,120 +228,46 @@ export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) 
 
   // Clipboard copies
   const triggerCopy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedSection(label);
-    setTimeout(() => setCopiedSection(null), 2000);
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+        setCopiedSection(label);
+        setTimeout(() => setCopiedSection(null), 2000);
+      } else {
+        throw new Error("Clipboard API not fully available");
+      }
+    } catch (err) {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        setCopiedSection(label);
+        setTimeout(() => setCopiedSection(null), 2000);
+      } catch (fallbackErr) {
+        console.warn("Clipboard copy fully failed:", fallbackErr);
+      }
+    }
   };
 
   return (
     <div className="space-y-6">
 
-      {/* Grid: Search facts on Left / Setup Generator on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        
-        {/* Left column: Deep Fact Search */}
-        <div className="lg:col-span-5 bg-panel border border-line p-4 rounded-lg flex flex-col space-y-4">
-          <div className="border-b border-line pb-2 flex justify-between items-center">
-            <h3 className="text-sm font-display font-bold text-white flex items-center space-x-2">
-              <Search size={16} className="text-purple-primary" />
-              <span>Carian Berita Pintar (Search Grounding)</span>
-            </h3>
-            <span className="text-[10px] font-mono bg-purple-primary/10 text-purple-primary border border-purple-primary/20 px-1.5 py-0.2 rounded">
-              GOOGLE SEARCH
-            </span>
-          </div>
-
-          <p className="text-xs text-muted-active leading-relaxed font-sans">
-            Gunakan keupayaan carian bersepadu Google Search Grounding untuk merujuk fakta terkini sebelum mula melakar berita.
-          </p>
-
-          <div className="flex space-x-2">
-            <input 
-              type="text"
-              placeholder="E.g. PRN Johor Ke-16"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-field border border-line rounded px-3 py-1.5 text-sm font-sans focus:outline-none focus:border-purple-primary text-white"
-            />
-            <button 
-              onClick={handleWebSearch}
-              disabled={isSearching}
-              className="px-4 py-1.5 bg-purple-primary hover:bg-purple-primary/90 disabled:bg-purple-primary/40 text-white rounded text-xs font-bold font-sans transition flex items-center space-x-1 whitespace-nowrap cursor-pointer"
-            >
-              {isSearching ? <RefreshCw className="animate-spin" size={14} /> : null}
-              <span>{isSearching ? "CARIAN RAPI..." : "DEEP SEARCH"}</span>
-            </button>
-          </div>
-
-          {/* Search Result view */}
-          <div className="flex-1 border border-line-soft bg-field/40 rounded p-3 min-h-[220px] overflow-y-auto space-y-3 font-mono text-xs">
-            {isSearching ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-2 text-muted-active">
-                <RefreshCw className="animate-spin text-purple-primary" size={24} />
-                <span>Melakukan penapisan carian Google Search...</span>
-                <span className="text-[10px] text-muted-inactive">Mengumpulkan rilis berita & blog tular</span>
-              </div>
-            ) : searchResult ? (
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-[10px] text-muted-inactive border-b border-line-soft pb-1">
-                  <span>DISAHKAN OLEH GEMINI PINTAR</span>
-                  <span className="text-emerald-400 font-bold">KOS : RM {searchResult.metadata.costRM.toFixed(4)}</span>
-                </div>
-
-                <div className="text-text-2 space-y-2 font-sans text-sm leading-relaxed whitespace-pre-line">
-                  {searchResult.summary}
-                </div>
-
-                {searchResult.sources.length > 0 && (
-                  <div className="space-y-1 pt-2 font-mono text-[11px] border-t border-line-soft">
-                    <span className="text-muted-active block">SUMBER UTAMA DIKESAN ({searchResult.sources.length})</span>
-                    <div className="space-y-1 text-muted-inactive">
-                      {searchResult.sources.map((s, idx) => (
-                        <a 
-                          key={idx}
-                          href={s.url} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="block hover:text-purple-primary truncate transition"
-                        >
-                          🔗 {idx + 1}. {s.title}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Transfer factual values in context trigger */}
-                <button 
-                  onClick={handleTransferToContext}
-                  className="w-full mt-2 flex justify-center items-center space-x-1.5 py-1.5 bg-panel-hover hover:bg-line border border-line rounded text-purple-primary text-[11px] font-bold transition font-mono cursor-pointer"
-                >
-                  <ArrowRight size={12} />
-                  <span>PINDAHKAN SUMMARY KE EDITOR DRAFT</span>
-                </button>
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center text-muted-inactive p-8">
-                <Terminal size={24} className="mb-2 text-muted-inactive opacity-40 animate-pulse" />
-                <span>Kotak terminal sedia untuk menerima input carian...</span>
-                <span className="text-[10px] mt-1">Isi kata kunci, klik 'DEEP SEARCH'</span>
-              </div>
-            )}
-          </div>
-
+      {/* Full Width Workspace for Editorial Draft Settings */}
+      <div className="bg-panel border border-line p-5 rounded-lg flex flex-col space-y-4 shadow-xl">
+        <div className="border-b border-line pb-2 flex justify-between items-center">
+          <h3 className="text-sm font-display font-medium text-white flex items-center space-x-2">
+            <Sparkles size={16} className="text-orange-primary" />
+            <span>Penyusunan Atribut & Tetapan Generator Draf</span>
+          </h3>
+          <span className="text-[10px] font-mono bg-orange-primary/10 text-orange-primary border border-orange-primary/20 px-1.5 py-0.2 rounded">
+            PROMPT SETUP
+          </span>
         </div>
-
-        {/* Right column: Editorial Draft Settings */}
-        <div className="lg:col-span-7 bg-panel border border-line p-4 rounded-lg flex flex-col space-y-4">
-          <div className="border-b border-line pb-2 flex justify-between items-center">
-            <h3 className="text-sm font-display font-bold text-white flex items-center space-x-2">
-              <Sparkles size={16} className="text-orange-primary" />
-              <span>Penyusunan Atribut & Tetapan Generator Draf</span>
-            </h3>
-            <span className="text-[10px] font-mono bg-orange-primary/10 text-orange-primary border border-orange-primary/20 px-1.5 py-0.2 rounded">
-              PROMPT SETUP
-            </span>
-          </div>
 
           {/* Form setup */}
           <div className="space-y-3 font-sans text-sm">
@@ -385,6 +328,11 @@ export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) 
                   {isScraping ? "Mengekstrak..." : "Tarik Teks"}
                 </button>
               </div>
+              {scrapeUrl && prefilledUrl === scrapeUrl && (
+                <div className="text-[11px] bg-orange-primary/10 border border-orange-500/20 text-orange-primary px-3 py-2 rounded-lg font-sans leading-normal">
+                  💡 <strong>Pautan dikesan dari Papan Monitor WarRoom!</strong> Klik butang <strong>'Tarik Teks'</strong> untuk menggali isi rencana penuh secara terus menggunakan ScrapingBee.
+                </div>
+              )}
               {scrapeSuccess && (
                 <p className="text-[11px] text-green-500 font-medium">✓ Kandungan rencana berjaya disuntik masuk ke kotak Konteks di atas!</p>
               )}
@@ -528,8 +476,6 @@ export default function DraftGenerator({ prefilledTopic }: DraftGeneratorProps) 
             </button>
 
           </div>
-        </div>
-
       </div>
 
       {/* Generating result display cards */}

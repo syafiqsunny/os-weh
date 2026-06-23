@@ -10,8 +10,16 @@ export interface TrendSignal {
   id: string;
   rank: number;
   keyword: string;
-  category: "Politik" | "Ekonomi" | "Am" | "Budaya" | "Bencana" | "Suara Rakyat";
-  score: number; // Total WEH Treng Score (out of 100)
+  category: "Politik" | "Ekonomi" | "Am" | "Budaya" | "Bencana" | "Suara Rakyat" | "Teknologi" | "Sosial";
+  vertical?: string; // WEH Money, WEH Siasat, WEH Borneo, WEH Check, etc.
+  score: number; // Trend Heat Score (0-100)
+  growthRate?: string; // e.g. "+68% dalam 60 minit"
+  mentionCount?: string; // e.g. "18,450 sebutan"
+  platformUtama?: string; // e.g. "TikTok", "Threads", "X", etc.
+  confidenceScore?: number; // e.g. 85
+  statusPengesahan?: "Disahkan" | "Sebahagian Disahkan" | "Belum Disahkan" | "Dipertikaikan" | "Palsu";
+  risiko?: "Luar Biasa" | "Tinggi" | "Sederhana" | "Rendah";
+  waktuKemasKini?: string;
   velocity: "Meningkat Tegak" | "Sederhana" | "Stabil" | "Menurun";
   risk3R: "Rendah" | "Sederhana" | "Tinggi"; // Race, Religion, Royalty, Sensationalism
   newsValue: "Sangat Tinggi" | "Tinggi" | "Sederhana" | "Biasa";
@@ -19,6 +27,20 @@ export interface TrendSignal {
   sources: string[]; // Headlines / summaries of mentions
   fullIntelBrief: string; // The Hourly Intelligence summary
   radarData: { name: string; value: number }[]; // custom radar metrics
+  newsLinks?: { label: string; url: string }[]; // Specific sources/portals references for scraping
+  
+  // Micropage elements
+  apaYangBerlaku?: string; // 150-300 words BM narrative
+  faktaDisahkan?: string[];
+  dakwaanBelumDisahkan?: string[];
+  responsRasmi?: string[];
+  apaYangBelumDiketahui?: string[];
+  sentimenMetrics?: { name: string; value: number }[]; // Positive, Negative, neutral, angry, worried, confused etc
+  sentimenKonteks?: string[];
+  keywordsBerkaitan?: string[];
+  entitiBerkaitan?: string[];
+  cadanganKandungan?: { format: string; title: string }[];
+  rankingHistory?: { capturedAt: string; rank: number; trendHeatScore: number }[];
 }
 
 export interface CostVariable {
