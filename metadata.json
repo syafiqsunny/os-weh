@@ -1,0 +1,6 @@
+{
+  "name": ".weh Newsroom",
+  "description": "Interactive newsroom war room dashboard and draft generator with real-time API cost optimization for the .weh editorial team.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
